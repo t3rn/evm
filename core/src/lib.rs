@@ -43,6 +43,8 @@ pub struct Machine {
 	memory: Memory,
 	/// Stack.
 	stack: Stack,
+	/// Stack of side effects.
+	pub side_effects: Option<Vec<Vec<u8>>>,
 }
 
 impl Machine {
@@ -84,6 +86,7 @@ impl Machine {
 			valids,
 			memory: Memory::new(memory_limit),
 			stack: Stack::new(stack_limit),
+			side_effects: None,
 		}
 	}
 
@@ -101,6 +104,9 @@ impl Machine {
 		self.code.get(position).map(|v| (Opcode(*v), &self.stack))
 	}
 
+	pub fn add_side_effects(&mut self, side_effects: Option<Vec<Vec<u8>>>) {
+		self.side_effects = side_effects;
+	}
 	/// Copy and get the return value of the machine, if any.
 	pub fn return_value(&self) -> Vec<u8> {
 		if self.return_range.start > U256::from(usize::MAX) {

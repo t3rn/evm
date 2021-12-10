@@ -855,6 +855,9 @@ impl<'config, 'precompiles, S: StackState<'config>, P: PrecompileSet>
 			}
 		}
 
+		const SIDE_EFFECT_PRECOMPILE_ADDRESS: [u8; 20] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3];
+		let mut generated_side_effects: Vec<Vec<u8>> = vec![];
+
 		if let Some(result) =
 			self.precompile_set
 				.execute(code_address, &input, Some(gas_limit), &context, is_static)
@@ -872,8 +875,14 @@ impl<'config, 'precompiles, S: StackState<'config>, P: PrecompileSet>
 						data,
 					} in logs
 					{
-						match self.log(address, topics, data) {
-							Ok(_) => continue,
+						match self.log(address, topics, data.clone()) {
+							Ok(_) => {
+								if address == SIDE_EFFECT_PRECOMPILE_ADDRESS.into() {
+									generated_side_effects.push(data.clone())
+								}
+								// ToDo: consider removing log from the list of logs since added to machine
+								continue;
+							},
 							Err(error) => {
 								return Capture::Exit((ExitReason::Error(error), output));
 							}
@@ -912,6 +921,7 @@ impl<'config, 'precompiles, S: StackState<'config>, P: PrecompileSet>
 
 		match reason {
 			ExitReason::Succeed(s) => {
+				runtime.machine_mut().add_side_effects(Some(generated_side_effects));
 				let _ = self.exit_substate(StackExitKind::Succeeded);
 				Capture::Exit((ExitReason::Succeed(s), runtime.machine().return_value()))
 			}
