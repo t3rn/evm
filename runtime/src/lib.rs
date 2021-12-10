@@ -136,6 +136,11 @@ impl<'config> Runtime<'config> {
 		&self.machine
 	}
 
+	/// Get a reference to the machine.
+	pub fn machine_mut(&mut self) -> &mut Machine {
+		&mut self.machine
+	}
+
 	/// Get a reference to the execution context.
 	pub fn context(&self) -> &Context {
 		&self.context
