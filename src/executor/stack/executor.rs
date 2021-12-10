@@ -874,13 +874,12 @@ impl<'config, 'precompiles, S: StackState<'config>, P: PrecompileSet>
 						data,
 					} in logs
 					{
-						// ToDo: DUPA Consider adding the match of Logs extraction from SideEffectsHere
 						match self.log(address, topics, data.clone()) {
 							Ok(_) => {
 								if address == SIDE_EFFECT_PRECOMPILE_ADDRESS.into() {
 									generated_side_effects.push(data.clone())
 								}
-								// consider removing log from the list?
+								// ToDo: consider removing log from the list of logs since added to machine
 								continue;
 							},
 							Err(error) => {
